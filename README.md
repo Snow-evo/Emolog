@@ -115,11 +115,6 @@ Compressed size: 8% (92% reduction)
   Skin tone variants and ZWJ composite emojis may use ~2 tokens.
 ```
 
-**More effective with longer texts**:
-- Short text (~100 characters): Limited effectiveness when too short
-- Medium-long text (300-1000 characters): Significant compression in both characters and tokens (latest tokenizer: 85-90% reduction)
-- Very long text (100,000+ characters): Dramatic efficiency gains in both character and token counts
-
 Actual testing achieved **5,000 characters→618 characters (87% compression)**.
 
 ### Q3: If dictionaries/syntax definitions (decoders) are needed, don't tokens increase anyway?
