@@ -80,9 +80,63 @@ Emologは**「エンティティマップ＋10要素」**で対話を構造化�
 Emolog/
 ├── Emolog_define.py    # 11要素の定義ファイル：英語版
 ├── Emolog_define_jp.py    # 11要素の定義ファイル：日本語版
+├── dialogue_chunker.py    # チャンク分割スクリプト
+├── dialogue_logs/         # 元の対話ログ（JSON形式）を入れるフォルダ
+├── chunks/                # チャンク化された出力ファイルが入るフォルダ
 ├── README_jp.md        # このファイル
 └── README.md           # READMEファイル英語版
 ```
+
+※ `dialogue_logs/` 配下の実際の会話ログ（.json）や `chunks/` 配下のチャンク出力は `.gitignore` によりGit管理から除外されています。サンプルやテンプレートのみリポジトリに含めてください。
+
+## 🔧 チャンク分割スクリプトの使い方
+
+### 1. 対話ログの準備
+
+- `dialogue_logs/` フォルダに、**リスト形式のJSONファイル**（例: `sample01.json`）を用意します。
+
+```json
+[
+  {
+    "text": "こんにちは！",
+    "metadata": {
+      "role": "user",
+      "date": "2025-05-15",
+      "id": "xxxx-xxxx-xxxx"
+    }
+  },
+  {
+    "text": "こんにちは、どうされましたか？",
+    "metadata": {
+      "role": "assistant",
+      "date": "2025-05-15",
+      "id": "yyyy-yyyy-yyyy"
+    }
+  }
+  // ...
+]
+```
+
+※ 入力ファイルは「リスト形式（配列）」のJSONであれば、各エントリの中身の構造（フィールド名や内容）は自由に扱えます。
+ただし、後続処理や他ツールとの連携のため、プロジェクト全体で統一した形式を使うことを推奨します。
+※ 入力ファイルはJSON形式（拡張子は任意）である必要があります。他形式（CSV, YAML, Pythonリストなど）はそのままでは使えません。
+
+### 2. チャンク化スクリプトの実行
+
+ターミナルで以下のコマンドを実行します：
+
+```bash
+python dialogue_chunker.py dialogue_logs/sample01.json --chunk-size 10000 --output-dir chunks/
+```
+
+- `--chunk-size`：1チャンクあたりの最大文字数（省略時は30000）
+- `--output-dir`：出力先ディレクトリ（省略時はchunks/）
+
+### 3. 出力
+
+- `chunks/sample01/` フォルダに `chunk_001.json`, `chunk_002.json` ... のように分割保存されます。
+- 各チャンクにはメタデータ（エントリー数、チャンク番号など）も含まれます。
+
 
 ## ❓ よくある疑問
 

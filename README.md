@@ -67,9 +67,71 @@ Emolog structures dialogue using **"Entity Map + 10 elements"**:
 Emolog/
 ├── Emolog_define.py     # 11-element definition file (English)
 ├── Emolog_define_jp.py  # 11-element definition file (Japanese)
-├── README.md           # This file
-└── README_jp.md        # README Japanese Version
+├── dialogue_chunker.py  # Chunking script
+├── dialogue_logs/       # Place your original dialogue logs (JSON format) here
+├── chunks/              # Output directory for chunked files
+├── README.md            # This file
+└── README_jp.md         # README Japanese Version
 ```
+
+Note: Actual dialogue logs under `dialogue_logs/` (.json) and chunked output under `chunks/` are excluded from Git tracking via `.gitignore`. Only sample or template files should be included in the repository.
+
+## 🔧 How to Use the Chunking Script
+
+### 1. Prepare Your Dialogue Log
+
+- Place a **JSON file in list format** (e.g., `sample01.json`) inside the `dialogue_logs/` folder.
+
+```json
+[
+  {
+    "text": "Hello!",
+    "metadata": {
+      "role": "user",
+      "date": "2025-05-15",
+      "id": "xxxx-xxxx-xxxx"
+    }
+  },
+  {
+    "text": "Hi, how can I help you?",
+    "metadata": {
+      "role": "assistant",
+      "date": "2025-05-15",
+      "id": "yyyy-yyyy-yyyy"
+    }
+  }
+  // ...
+]
+```
+
+*The above is a recommended example. The chunking script accepts any list of objects regardless of their internal structure (field names, etc.). However, for downstream processing and tool compatibility, it is strongly recommended to use a consistent entry format throughout your project.*
+
+Note: The input file must be in JSON format (extension does not matter). Other formats (CSV, YAML, Python list, etc.) are not supported.
+
+### 2. Run the Chunking Script
+
+In your terminal, execute:
+
+```bash
+python dialogue_chunker.py dialogue_logs/sample01.json --chunk-size 10000 --output-dir chunks/
+```
+
+- `--chunk-size`: Maximum number of characters per chunk (default: 30000)
+- `--output-dir`: Output directory for chunk files (default: chunks/)
+
+### 3. Output
+
+- Chunked files like `chunk_001.json`, `chunk_002.json`, ... will be saved in `chunks/sample01/`.
+- Each chunk includes metadata (entry count, chunk number, etc.).
+
+### Note on Data Management
+
+- **Do not commit or push actual dialogue logs or chunked data to your repository.**
+- The following folders are excluded from Git by default via `.gitignore`:
+  - `dialogue_logs/*.json`
+  - `chunks/*/`
+- This ensures that private or sensitive conversation data is never accidentally published.
+- If you want to provide a sample, use a file like `sample01.example.json` and document the format.
 
 ## ❓ Frequently Asked Questions
 
