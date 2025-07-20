@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Dialogue Chunker for Emolog
-大規模な対話ログJSONファイルをメモリ効率的にチャンクに分割する
+Memory-efficient chunking of large dialogue log JSON files into manageable pieces
 
 Usage:
     python dialogue_chunker.py <input_json_file> [--chunk-size <characters>] [--output-dir <directory>]
@@ -16,47 +16,47 @@ import sys
 import argparse
 from pathlib import Path
 from typing import List, Dict, Any, Optional
-# import ijson  # ストリーミングJSON処理用（大規模ファイル対応時に使用）
+# import ijson  # For streaming JSON processing (use when handling very large files)
 
 
 class DialogueChunker:
-    def __init__(self, chunk_size: int = 30000, output_dir: str = "chunks"):
+    def __init__(self, chunk_size: int = 25000, output_dir: str = "chunks"):
         """
         Args:
-            chunk_size: 各チャンクの目標文字数（デフォルト: 30,000文字）
-            output_dir: チャンクの出力ディレクトリ
+            chunk_size: Target character count for each chunk (default: 25,000 characters)
+            output_dir: Output directory for chunk files
         """
         self.chunk_size = chunk_size
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(exist_ok=True)
-        self.current_subdir = None  # 現在のファイル用のサブディレクトリ
+        self.current_subdir = None  # Subdirectory for current file
         
     def estimate_entry_size(self, entry: Dict[str, Any]) -> int:
-        """対話エントリーのおおよその文字数を推定"""
+        """Estimate approximate character count of a dialogue entry"""
         return len(json.dumps(entry, ensure_ascii=False))
     
     def clear_output_dir(self):
-        """現在のサブディレクトリの既存チャンクファイルをクリア"""
+        """Clear existing chunk files in current subdirectory"""
         if self.current_subdir and self.current_subdir.exists():
             for file in self.current_subdir.glob("chunk_*.json"):
                 file.unlink()
             
     def chunk_dialogue_file(self, input_file: str) -> Dict[str, Any]:
         """
-        対話ログファイルをチャンクに分割
+        Split dialogue log file into chunks
         
         Args:
-            input_file: 入力JSONファイルパス
+            input_file: Input JSON file path
             
         Returns:
-            分割統計情報
+            Chunking statistics
         """
         input_path = Path(input_file)
         if not input_path.exists():
             raise FileNotFoundError(f"Input file not found: {input_file}")
             
-        # 入力ファイル名からサブディレクトリを作成
-        base_name = input_path.stem  # 拡張子を除いたファイル名
+        # Create subdirectory from input filename
+        base_name = input_path.stem  # Filename without extension
         self.current_subdir = self.output_dir / base_name
         self.current_subdir.mkdir(exist_ok=True)
         
@@ -69,7 +69,7 @@ class DialogueChunker:
         total_characters = 0
         
         try:
-            # 通常のJSONロードを試みる（小さいファイルの場合）
+            # Try normal JSON loading (for smaller files)
             with open(input_file, 'r', encoding='utf-8') as f:
                 data = json.load(f)
                 
@@ -80,7 +80,7 @@ class DialogueChunker:
                 entry_size = self.estimate_entry_size(entry)
                 total_characters += entry_size
                 
-                # 現在のチャンクがサイズ制限を超える場合、新しいチャンクを開始
+                # Start new chunk if current chunk exceeds size limit
                 if current_size + entry_size > self.chunk_size and current_chunk:
                     chunk_count += 1
                     self._save_chunk(current_chunk, chunk_count)
@@ -91,7 +91,7 @@ class DialogueChunker:
                 current_size += entry_size
                 total_entries += 1
                 
-            # 最後のチャンクを保存
+            # Save the last chunk
             if current_chunk:
                 chunk_count += 1
                 self._save_chunk(current_chunk, chunk_count)
@@ -100,7 +100,7 @@ class DialogueChunker:
             print(f"Error decoding JSON: {e}")
             sys.exit(1)
         except MemoryError:
-            # メモリエラーの場合はストリーミング処理にフォールバック
+            # Fallback to streaming processing on memory error
             print("File too large for memory, using streaming approach...")
             return self._chunk_dialogue_streaming(input_file)
             
@@ -113,23 +113,23 @@ class DialogueChunker:
             "output_directory": str(self.current_subdir)
         }
         
-        # 統計情報を保存
+        # Save statistics
         with open(self.current_subdir / "chunking_stats.json", 'w', encoding='utf-8') as f:
             json.dump(stats, f, ensure_ascii=False, indent=2)
             
         return stats
     
     def _chunk_dialogue_streaming(self, input_file: str) -> Dict[str, Any]:
-        """大規模ファイル用のストリーミング処理"""
-        # ijsonを使用したストリーミング実装
-        # （大規模ファイル対応が必要な場合に実装）
+        """Streaming processing for large files"""
+        # Streaming implementation using ijson
+        # (implement when large file support is needed)
         raise NotImplementedError("Streaming processing not yet implemented")
         
     def _save_chunk(self, chunk_data: List[Dict[str, Any]], chunk_number: int):
-        """チャンクをファイルに保存"""
+        """Save chunk to file"""
         chunk_file = self.current_subdir / f"chunk_{chunk_number:03d}.json"
         
-        # チャンクメタデータを追加
+        # Add chunk metadata
         chunk_with_metadata = {
             "chunk_metadata": {
                 "chunk_number": chunk_number,
@@ -156,8 +156,8 @@ def main():
     parser.add_argument(
         "--chunk-size",
         type=int,
-        default=30000,
-        help="Target size for each chunk in characters (default: 30000)"
+        default=25000,
+        help="Target size for each chunk in characters (default: 25000)"
     )
     parser.add_argument(
         "--output-dir",
@@ -167,7 +167,7 @@ def main():
     
     args = parser.parse_args()
     
-    # チャンカーを初期化して実行
+    # Initialize and run chunker
     chunker = DialogueChunker(
         chunk_size=args.chunk_size,
         output_dir=args.output_dir
